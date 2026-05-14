@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyCollection Manager</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: #f0f0f0;
+    color: #1a1a1a;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .app {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  /* NAV */
+  .nav {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 1rem;
+  }
+  .nav button {
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    color: #555;
+    background: transparent;
+  }
+  .nav button.active {
+    border-color: #bbb;
+    background: #fff;
+    color: #1a1a1a;
+  }
+
+  /* TABS */
+  .tab { display: none; }
+  .tab.active { display: block; }
+
+  /* PACK TAB */
+  .pack-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1rem 0;
+  }
+
+  .pack-btn {
+    width: 140px;
+    height: 200px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1a1a;
+  }
+  .pack-btn:hover { background: #f8f8f8; border-color: #999; }
+
+  .pack-label {
+    font-size: 12px;
+    color: #888;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .opened-cards {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .mini-card {
+    width: 80px;
+    border-radius: 6px;
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 10px 6px;
+    text-align: center;
+  }
+  .mini-card-name { font-size: 11px; font-weight: 600; color: #1a1a1a; }
+  .mini-card-rare { font-size: 10px; color: #888; margin-top: 3px; }
+
+  .pack-actions { display: flex; gap: 8px; }
+  .pack-actions button {
+    padding: 7px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #1a1a1a;
+  }
+  .pack-actions button:hover { background: #f0f0f0; }
+  .pack-actions button.confirm {
+    background: #1a5fa8;
+    color: #fff;
+    border-color: transparent;
+  }
+  .pack-actions button.confirm:hover { background: #154e8c; }
+
+  /* STATS */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+  .stat-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    text-align: center;
+  }
+  .stat-num   { font-size: 22px; font-weight: 600; color: #1a1a1a; }
+  .stat-label { font-size: 11px; color: #888; margin-top: 2px; }
+
+  /* SEARCH */
+  .search-bar { margin-bottom: 1rem; }
+  .search-bar input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: #fff;
+    color: #1a1a1a;
+    font-size: 13px;
+    outline: none;
+  }
+  .search-bar input:focus { border-color: #888; }
+
+  /* COLLECTION GRID */
+  .collection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+  }
+  .empty-msg { text-align: center; color: #999; font-size: 13px; padding: 2rem 0; }
+
+  /* CARDS */
+  .card {
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #ddd;
+    overflow: hidden;
+  }
+  .card.fav   { border-color: #c4a000; border-width: 2px; }
+  .card.trade { border-color: #1d7a9e; border-width: 2px; }
+
+  .card-top {
+    height: 70px;
+    background: #e8e8e8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .card-top-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+    padding: 0 8px;
+  }
+
+  .card-body  { padding: 8px; }
+  .card-name  { font-size: 12px; font-weight: 600; color: #1a1a1a; }
+  .card-rare  { font-size: 11px; color: #888; margin-top: 1px; }
+  .card-dup        { font-size: 10px; color: #b85c00; font-weight: 600; margin-top: 3px; }
+  .card-fav-badge  { font-size: 10px; color: #c4a000; font-weight: 600; margin-top: 1px; }
+  .card-trade-badge{ font-size: 10px; color: #1d7a9e; font-weight: 600; margin-top: 1px; }
+
+  .card-actions { display: flex; gap: 4px; margin-top: 8px; }
+  .card-actions button {
+    flex: 1;
+    padding: 4px 0;
+    font-size: 11px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    background: #f5f5f5;
+    color: #555;
+    cursor: pointer;
+  }
+  .card-actions button:hover { background: #e8e8e8; }
+  .card-actions button.del:hover { background: #ffeaea; color: #c00; }
+  .card-actions button.active-fav   { background: #fff8d6; color: #c4a000; border-color: #e6cf70; }
+  .card-actions button.active-trade { background: #d6f0ff; color: #1d7a9e; border-color: #7ec9e8; }
+
+  /* ALL FIGURINHAS */
+  .all-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 8px;
+  }
+  .all-item {
+    border-radius: 6px;
+    background: #fff;
+    border: 1px solid #ddd;
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+  }
+  .all-item:hover  { border-color: #999; background: #fafafa; }
+  .all-item.owned  { border-color: #2d9e4a; border-width: 2px; background: #f2fff5; }
+  .all-item-name   { font-size: 12px; font-weight: 600; color: #1a1a1a; }
+  .all-item-rare   { font-size: 10px; color: #888; margin-top: 3px; }
+  .owned-badge     { font-size: 9px; color: #2d9e4a; font-weight: 700; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <h1>MyCollection Manager</h1>
+
+  <nav class="nav">
+    <button class="active" onclick="showTab('pacotes', this)">Pacotinhos</button>
+    <button onclick="showTab('colecao', this)">Minha Colecao</button>
+    <button onclick="showTab('todas', this)">Todas as Figurinhas</button>
+  </nav>
+
+  <!-- ABA PACOTINHOS -->
+  <div id="tab-pacotes" class="tab active">
+    <div class="pack-area">
+
+      <div id="pack-idle" style="text-align:center">
+        <p class="pack-label">Clique para abrir um pacote e ganhar figurinhas aleatorias</p>
+        <button class="pack-btn" onclick="abrirPacote()">
+          <span style="font-size:40px">&#9632;</span>
+          <span>Abrir Pacote</span>
+        </button>
+      </div>
+
+      <div id="pack-result" style="display:none; text-align:center; width:100%">
+        <p style="font-size:12px; color:#888; margin-bottom:12px">Voce ganhou estas figurinhas!</p>
+        <div class="opened-cards" id="opened-cards"></div>
+        <div class="pack-actions" style="margin-top:1rem; justify-content:center">
+          <button onclick="descartarPacote()">Descartar</button>
+          <button class="confirm" onclick="guardarPacote()">Guardar todas</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ABA MINHA COLECAO -->
+  <div id="tab-colecao" class="tab">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-total">0</div>
+        <div class="stat-label">Total de Itens</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-dup">0</div>
+        <div class="stat-label">Repetidas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-unique">0</div>
+        <div class="stat-label">Unicas</div>
+      </div>
+    </div>
+    <div class="search-bar">
+      <input type="text" placeholder="Buscar figurinha..." id="search-input" oninput="filtrar()">
+    </div>
+    <div class="collection-grid" id="collection-grid"></div>
+    <p class="empty-msg" id="empty-msg">Nenhuma figurinha ainda. Abra alguns pacotes!</p>
+  </div>
+
+  <!-- ABA TODAS AS FIGURINHAS -->
+  <div id="tab-todas" class="tab">
+    <p style="font-size:12px; color:#888; margin-bottom:1rem">
+      Clique em qualquer figurinha para adiciona-la a sua colecao.
+    </p>
+    <div class="all-grid" id="all-grid"></div>
+  </div>
+</div>
+
+<script>
+  const FIGURINHAS = [
+    {id:1,  nome:"Pikachu",    raridade:"Comum"},
+    {id:2,  nome:"Charmander", raridade:"Comum"},
+    {id:3,  nome:"Squirtle",   raridade:"Comum"},
+    {id:4,  nome:"Bulbasaur",  raridade:"Comum"},
+    {id:5,  nome:"Jigglypuff", raridade:"Comum"},
+    {id:6,  nome:"Gengar",     raridade:"Incomum"},
+    {id:7,  nome:"Snorlax",    raridade:"Incomum"},
+    {id:8,  nome:"Eevee",      raridade:"Incomum"},
+    {id:9,  nome:"Lapras",     raridade:"Incomum"},
+    {id:10, nome:"Dragonite",  raridade:"Rara"},
+    {id:11, nome:"Mewtwo",     raridade:"Ultra Rara"},
+    {id:12, nome:"Mew",        raridade:"Ultra Rara"},
+    {id:13, nome:"Charizard",  raridade:"Rara"},
+    {id:14, nome:"Blastoise",  raridade:"Rara"},
+    {id:15, nome:"Venusaur",   raridade:"Rara"},
+    {id:16, nome:"Articuno",   raridade:"Rara"},
+    {id:17, nome:"Zapdos",     raridade:"Rara"},
+    {id:18, nome:"Moltres",    raridade:"Rara"},
+  ];
+
+  let colecao = [];
+  let pacoteAtual = [];
+
+  function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function randRaridade() {
+    const r = Math.random();
+    if (r < 0.50) return "Comum";
+    if (r < 0.80) return "Incomum";
+    if (r < 0.95) return "Rara";
+    return "Ultra Rara";
+  }
+
+  function abrirPacote() {
+    pacoteAtual = [];
+    for (let i = 0; i < 4; i++) {
+      const rare = randRaridade();
+      const pool = FIGURINHAS.filter(f => f.raridade === rare);
+      pacoteAtual.push(pool.length ? rand(pool) : rand(FIGURINHAS));
+    }
+    const el = document.getElementById("opened-cards");
+    el.innerHTML = "";
+    pacoteAtual.forEach(f => {
+      const d = document.createElement("div");
+      d.className = "mini-card";
+      d.innerHTML = `<div class="mini-card-name">${f.nome}</div><div class="mini-card-rare">${f.raridade}</div>`;
+      el.appendChild(d);
+    });
+    document.getElementById("pack-idle").style.display = "none";
+    document.getElementById("pack-result").style.display = "block";
+  }
+
+  function descartarPacote() {
+    pacoteAtual = [];
+    document.getElementById("pack-idle").style.display = "block";
+    document.getElementById("pack-result").style.display = "none";
+  }
+
+  function guardarPacote() {
+    pacoteAtual.forEach(f => {
+      colecao.push({
+        ...f,
+        uid: Date.now() + Math.random(),
+        repetida: colecao.some(c => c.id === f.id),
+        fav: false,
+        troca: false
+      });
+    });
+    pacoteAtual = [];
+    document.getElementById("pack-idle").style.display = "block";
+    document.getElementById("pack-result").style.display = "none";
+    atualizarColecao();
+    atualizarTodas();
+  }
+
+  function atualizarStats() {
+    const total = colecao.length;
+    const dup   = colecao.filter(c => c.repetida).length;
+    document.getElementById("stat-total").textContent  = total;
+    document.getElementById("stat-dup").textContent    = dup;
+    document.getElementById("stat-unique").textContent = total - dup;
+  }
+
+  function atualizarColecao() {
+    atualizarStats();
+    filtrar();
+  }
+
+  function filtrar() {
+    const q = document.getElementById("search-input").value.toLowerCase();
+    const grid = document.getElementById("collection-grid");
+    grid.innerHTML = "";
+    const filtradas = colecao.filter(c => c.nome.toLowerCase().includes(q));
+
+    document.getElementById("empty-msg").style.display = colecao.length === 0 ? "block" : "none";
+
+    filtradas.forEach(c => {
+      const d = document.createElement("div");
+      d.className = "card" + (c.fav ? " fav" : "") + (c.troca ? " trade" : "");
+      d.id = "card-" + c.uid;
+      d.innerHTML = `
+        <div class="card-top"><div class="card-top-name">${c.nome}</div></div>
+        <div class="card-body">
+          <div class="card-rare">${c.raridade}</div>
+          ${c.repetida ? '<div class="card-dup">Repetida</div>' : ""}
+          ${c.fav   ? '<div class="card-fav-badge">Favorita</div>'   : ""}
+          ${c.troca ? '<div class="card-trade-badge">Para Troca</div>' : ""}
+          <div class="card-actions">
+            <button class="${c.fav ? 'active-fav' : ''}" onclick="toggleFav('${c.uid}')">Fav</button>
+            <button class="${c.troca ? 'active-trade' : ''}" onclick="toggleTroca('${c.uid}')">Troca</button>
+            <button class="del" onclick="remover('${c.uid}')">X</button>
+          </div>
+        </div>`;
+      grid.appendChild(d);
+    });
+  }
+
+  function toggleFav(uid) {
+    const c = colecao.find(x => x.uid == uid);
+    if (c) { c.fav = !c.fav; c.troca = false; }
+    atualizarColecao();
+  }
+
+  function toggleTroca(uid) {
+    const c = colecao.find(x => x.uid == uid);
+    if (c) { c.troca = !c.troca; c.fav = false; }
+    atualizarColecao();
+  }
+
+  function remover(uid) {
+    colecao = colecao.filter(x => x.uid != uid);
+    atualizarColecao();
+    atualizarTodas();
+  }
+
+  function atualizarTodas() {
+    const grid = document.getElementById("all-grid");
+    grid.innerHTML = "";
+    FIGURINHAS.forEach(f => {
+      const tenho = colecao.some(c => c.id === f.id);
+      const d = document.createElement("div");
+      d.className = "all-item" + (tenho ? " owned" : "");
+      d.innerHTML = `
+        <div class="all-item-name">${f.nome}</div>
+        <div class="all-item-rare">${f.raridade}</div>
+        ${tenho ? '<div class="owned-badge">Tenho</div>' : ""}`;
+      d.onclick = () => {
+        colecao.push({
+          ...f,
+          uid: Date.now() + Math.random(),
+          repetida: colecao.some(c => c.id === f.id),
+          fav: false,
+          troca: false
+        });
+        atualizarColecao();
+        atualizarTodas();
+      };
+      grid.appendChild(d);
+    });
+  }
+
+  function showTab(name, btn) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+    document.getElementById("tab-" + name).classList.add("active");
+    btn.classList.add("active");
+    if (name === "todas")   atualizarTodas();
+    if (name === "colecao") atualizarColecao();
+  }
+
+  atualizarTodas();
+</script>
+</body>
+</html>
