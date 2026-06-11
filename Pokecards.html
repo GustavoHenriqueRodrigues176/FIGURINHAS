@@ -3,476 +3,856 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MyCollection Manager</title>
+<title>PokéCards Manager</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    font-family: system-ui, -apple-system, sans-serif;
-    background: #f0f0f0;
-    color: #1a1a1a;
-    min-height: 100vh;
-    padding: 2rem 1rem;
-  }
+html, body {
+  height: 100%;
+  width: 100%;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #1a1a2e;
+  color: #1a1a1a;
+  overflow: hidden;
+}
 
-  .app {
-    max-width: 720px;
-    margin: 0 auto;
-  }
+/* ── LAYOUT ─────────────────────────────── */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
 
-  h1 {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-  }
+/* ── HEADER ──────────────────────────────── */
+.poke-header {
+  background: #e3350d;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 4px solid #b02a0b;
+  flex-shrink: 0;
+}
+.header-left { display: flex; flex-direction: column; }
+.poke-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 18px;
+  color: #ffcb05;
+  text-shadow: 2px 2px 0 #000;
+}
+.poke-sub {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 9px;
+  color: #fff;
+  margin-top: 5px;
+  opacity: 0.85;
+}
+.pokeball-spin { width: 36px; height: 36px; animation: spin 4s linear infinite; display:flex; align-items:center; justify-content:center; }
+.pokeball-spin svg { width: 36px; height: 36px; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-  /* NAV */
-  .nav {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid #ccc;
-    padding-bottom: 1rem;
-  }
-  .nav button {
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    border: 1px solid transparent;
-    color: #555;
-    background: transparent;
-  }
-  .nav button.active {
-    border-color: #bbb;
-    background: #fff;
-    color: #1a1a1a;
-  }
+/* ── POINTS BAR ─────────────────────────── */
+.points-bar {
+  background: #0f0f1e;
+  padding: 7px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid #333;
+  flex-shrink: 0;
+}
+.pts-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,203,5,0.12);
+  border: 1px solid #ffcb05;
+  border-radius: 20px;
+  padding: 4px 14px;
+}
+.pts-num {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  color: #ffcb05;
+}
+.pts-lbl { font-size: 12px; color: #aaa; }
+.pts-hint { font-size: 11px; color: #666; }
 
-  /* TABS */
-  .tab { display: none; }
-  .tab.active { display: block; }
+/* ── NAV ─────────────────────────────────── */
+.nav {
+  display: flex;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  flex-shrink: 0;
+}
+.nav-btn {
+  flex: 1;
+  padding: 10px 4px;
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.nav-btn i { font-size: 20px; }
+.nav-btn.active { color: #e3350d; border-bottom-color: #e3350d; background: rgba(227,53,13,0.04); }
+.nav-btn:hover:not(.active) { background: #fafafa; color: #555; }
 
-  /* PACK TAB */
-  .pack-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.5rem;
-    padding: 1rem 0;
-  }
+/* ── CONTENT AREA ───────────────────────── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #f4f4f4;
+}
 
-  .pack-btn {
-    width: 140px;
-    height: 200px;
-    border-radius: 8px;
-    background: #fff;
-    border: 1px solid #ccc;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    font-size: 14px;
-    font-weight: 500;
-    color: #1a1a1a;
-  }
-  .pack-btn:hover { background: #f8f8f8; border-color: #999; }
+/* ── TABS ────────────────────────────────── */
+.tab { display: none; padding: 20px 24px; }
+.tab.active { display: block; }
 
-  .pack-label {
-    font-size: 12px;
-    color: #888;
-    text-align: center;
-    margin-bottom: 0.5rem;
-  }
+/* ── TYPE BADGES ─────────────────────────── */
+.type-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.tc  { background: #A8A878; color: #fff; }
+.ti  { background: #6890F0; color: #fff; }
+.tr  { background: #F8D030; color: #333; }
+.tur { background: #9e38e8; color: #fff; }
 
-  .opened-cards {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
+/* ── PACK TAB ───────────────────────────── */
+.pack-center {
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+.pack-hint { font-size: 13px; color: #666; margin-bottom: 18px; }
+.pack-selector { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+.pack-opt {
+  width: 140px;
+  background: #fff;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  padding: 14px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pack-opt:hover { border-color: #e3350d; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.pack-opt.selected { border-color: #e3350d; background: #fff5f5; }
+.pack-opt.locked { opacity: 0.5; cursor: not-allowed; }
+.pack-opt.locked:hover { border-color: #ddd; transform: none; box-shadow: none; }
+.pack-opt-icon { height: 44px; display:flex; align-items:center; justify-content:center; margin-bottom: 8px; }
+.pack-opt-icon svg { width: 38px; height: 38px; }
+.pack-opt-name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+.pack-opt-price { font-size: 12px; color: #c4a000; margin-top: 3px; font-weight: 600; }
+.pack-opt-desc { font-size: 10px; color: #999; margin-top: 3px; }
 
-  .mini-card {
-    width: 80px;
-    border-radius: 6px;
-    background: #fff;
-    border: 1px solid #ddd;
-    padding: 10px 6px;
-    text-align: center;
-  }
-  .mini-card-name { font-size: 11px; font-weight: 600; color: #1a1a1a; }
-  .mini-card-rare { font-size: 10px; color: #888; margin-top: 3px; }
+.open-btn {
+  background: #e3350d;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 13px 40px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  border-bottom: 4px solid #b02a0b;
+  letter-spacing: 0.5px;
+  transition: all 0.15s;
+}
+.open-btn:hover { background: #c22d0a; }
+.open-btn:active { transform: translateY(2px); border-bottom-width: 2px; }
+.open-btn:disabled { background: #bbb; border-bottom-color: #999; cursor: not-allowed; }
 
-  .pack-actions { display: flex; gap: 8px; }
-  .pack-actions button {
-    padding: 7px 18px;
-    font-size: 13px;
-    font-weight: 500;
-    border-radius: 6px;
-    cursor: pointer;
-    border: 1px solid #ccc;
-    background: #fff;
-    color: #1a1a1a;
-  }
-  .pack-actions button:hover { background: #f0f0f0; }
-  .pack-actions button.confirm {
-    background: #1a5fa8;
-    color: #fff;
-    border-color: transparent;
-  }
-  .pack-actions button.confirm:hover { background: #154e8c; }
+.result-cards { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin: 20px 0; }
+.rev-card {
+  width: 100px;
+  background: #fff;
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  overflow: hidden;
+  text-align: center;
+  animation: flipIn 0.4s ease both;
+}
+.rev-card.ultra { border-color: #9e38e8; box-shadow: 0 0 14px rgba(158,56,232,0.35); }
+.rev-card.rara  { border-color: #F8D030; box-shadow: 0 0 10px rgba(248,208,48,0.3); }
+@keyframes flipIn { from { opacity:0; transform: rotateY(90deg) scale(0.8); } to { opacity:1; transform: none; } }
+.rev-card:nth-child(1){animation-delay:.00s}
+.rev-card:nth-child(2){animation-delay:.12s}
+.rev-card:nth-child(3){animation-delay:.24s}
+.rev-card:nth-child(4){animation-delay:.36s}
+.rev-card:nth-child(5){animation-delay:.48s}
+.rev-img { width: 70px; height: 70px; object-fit: contain; display: block; margin: 8px auto 4px; image-rendering: pixelated; background: #f0f0f0; border-radius: 8px; padding: 4px; }
+.rev-name { font-size: 11px; font-weight: 700; color: #1a1a1a; padding: 0 4px 2px; }
+.rev-rare { padding: 4px 0 8px; }
 
-  /* STATS */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 1rem;
-  }
-  .stat-card {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 10px;
-    text-align: center;
-  }
-  .stat-num   { font-size: 22px; font-weight: 600; color: #1a1a1a; }
-  .stat-label { font-size: 11px; color: #888; margin-top: 2px; }
+.pack-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+.btn-disc { background: #f0f0f0; color: #555; border: 1px solid #ccc; border-radius: 8px; padding: 10px 22px; font-size: 13px; font-weight: 500; cursor: pointer; }
+.btn-disc:hover { background: #e0e0e0; }
+.btn-sell-all { background: #e67e22; color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 13px; font-weight: 600; cursor: pointer; border-bottom: 3px solid #b05b0a; }
+.btn-sell-all:hover { background: #b05b0a; }
+.btn-save { background: #3b4cca; color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 13px; font-weight: 600; cursor: pointer; border-bottom: 3px solid #2a3799; }
+.btn-save:hover { background: #2a3799; }
 
-  /* SEARCH */
-  .search-bar { margin-bottom: 1rem; }
-  .search-bar input {
-    width: 100%;
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    background: #fff;
-    color: #1a1a1a;
-    font-size: 13px;
-    outline: none;
-  }
-  .search-bar input:focus { border-color: #888; }
+/* ── COLLECTION TAB ─────────────────────── */
+.stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 14px; }
+.stat-box { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 12px; text-align: center; }
+.stat-num { font-size: 26px; font-weight: 600; color: #1a1a1a; }
+.stat-lbl { font-size: 11px; color: #888; margin-top: 2px; }
 
-  /* COLLECTION GRID */
-  .collection-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 10px;
-  }
-  .empty-msg { text-align: center; color: #999; font-size: 13px; padding: 2rem 0; }
+.prog-wrap { background: #e0e0e0; border-radius: 20px; height: 14px; overflow: hidden; margin: 8px 0 4px; }
+.prog-fill { height: 100%; background: #e3350d; border-radius: 20px; transition: width 0.5s ease; }
+.prog-text { font-size: 11px; color: #888; text-align: right; }
 
-  /* CARDS */
-  .card {
-    border-radius: 8px;
-    background: #fff;
-    border: 1px solid #ddd;
-    overflow: hidden;
-  }
-  .card.fav   { border-color: #c4a000; border-width: 2px; }
-  .card.trade { border-color: #1d7a9e; border-width: 2px; }
+.filter-row { display: flex; gap: 8px; margin: 14px 0; flex-wrap: wrap; align-items: center; }
+.filter-row input {
+  flex: 1; min-width: 160px;
+  padding: 8px 12px; border-radius: 8px;
+  border: 1px solid #ccc; background: #fff;
+  color: #1a1a1a; font-size: 13px; outline: none;
+}
+.filter-row input:focus { border-color: #e3350d; }
+.fpill {
+  padding: 6px 14px; border-radius: 20px;
+  font-size: 11px; font-weight: 500;
+  border: 1px solid #ddd; background: #fff;
+  color: #666; cursor: pointer; white-space: nowrap;
+}
+.fpill.active { background: #e3350d; border-color: #e3350d; color: #fff; }
 
-  .card-top {
-    height: 70px;
-    background: #e8e8e8;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .card-top-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: #333;
-    text-align: center;
-    padding: 0 8px;
-  }
+.col-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.pcard {
+  background: #fff; border: 2px solid #e0e0e0;
+  border-radius: 12px; overflow: hidden;
+  transition: border-color 0.15s;
+}
+.pcard.fav   { border-color: #F8D030; }
+.pcard.trade { border-color: #3b4cca; }
+.pcard-top {
+  background: #f5f5f5; height: 90px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.pcard-top img { width: 70px; height: 70px; object-fit: contain; image-rendering: pixelated; }
+.dup-badge { position: absolute; top: 5px; right: 5px; background: #e3350d; color: #fff; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 5px; }
+.pcard-body { padding: 8px; }
+.pcard-name { font-size: 12px; font-weight: 700; color: #1a1a1a; margin-bottom: 3px; }
+.pcard-status { font-size: 10px; margin-top: 4px; min-height: 14px; }
+.sf { color: #c4a000; }
+.st { color: #3b4cca; }
 
-  .card-body  { padding: 8px; }
-  .card-name  { font-size: 12px; font-weight: 600; color: #1a1a1a; }
-  .card-rare  { font-size: 11px; color: #888; margin-top: 1px; }
-  .card-dup        { font-size: 10px; color: #b85c00; font-weight: 600; margin-top: 3px; }
-  .card-fav-badge  { font-size: 10px; color: #c4a000; font-weight: 600; margin-top: 1px; }
-  .card-trade-badge{ font-size: 10px; color: #1d7a9e; font-weight: 600; margin-top: 1px; }
+.pca { display: flex; gap: 3px; margin-top: 8px; }
+.pcab {
+  flex: 1; padding: 5px 2px; font-size: 11px;
+  border-radius: 5px; border: 1px solid #ddd;
+  background: #f5f5f5; color: #555; cursor: pointer;
+}
+.pcab:hover { background: #ebebeb; }
+.pcab.af { background: #fff8d6; color: #c4a000; border-color: #e6cf70; }
+.pcab.at { background: #dde4ff; color: #3b4cca; border-color: #9aaaf0; }
+.pcab.as { background: #fef0e6; color: #e67e22; border-color: #f5b87e; }
+.pcab.del:hover { background: #ffeaea; color: #c00; }
 
-  .card-actions { display: flex; gap: 4px; margin-top: 8px; }
-  .card-actions button {
-    flex: 1;
-    padding: 4px 0;
-    font-size: 11px;
-    border-radius: 4px;
-    border: 1px solid #ddd;
-    background: #f5f5f5;
-    color: #555;
-    cursor: pointer;
-  }
-  .card-actions button:hover { background: #e8e8e8; }
-  .card-actions button.del:hover { background: #ffeaea; color: #c00; }
-  .card-actions button.active-fav   { background: #fff8d6; color: #c4a000; border-color: #e6cf70; }
-  .card-actions button.active-trade { background: #d6f0ff; color: #1d7a9e; border-color: #7ec9e8; }
+/* ── POKÉDEX TAB ────────────────────────── */
+.pdx-info { font-size: 12px; color: #888; margin-bottom: 14px; }
+.pdx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+.pdx-item {
+  background: #fff; border: 2px solid #e0e0e0;
+  border-radius: 10px; padding: 10px 8px;
+  text-align: center; cursor: pointer;
+  transition: all 0.15s;
+}
+.pdx-item:hover { border-color: #e3350d; transform: translateY(-2px); }
+.pdx-item.owned { border-color: #2d9e4a; background: #f2fff5; }
+.pdx-item img { width: 60px; height: 60px; object-fit: contain; image-rendering: pixelated; display: block; margin: 0 auto 5px; }
+.pdx-name { font-size: 11px; font-weight: 700; color: #1a1a1a; margin-bottom: 3px; }
+.pdx-own { font-size: 9px; color: #2d9e4a; font-weight: 700; margin-top: 3px; }
+.pdx-qty { font-size: 9px; color: #2d9e4a; }
 
-  /* ALL FIGURINHAS */
-  .all-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 8px;
-  }
-  .all-item {
-    border-radius: 6px;
-    background: #fff;
-    border: 1px solid #ddd;
-    padding: 10px 8px;
-    text-align: center;
-    cursor: pointer;
-  }
-  .all-item:hover  { border-color: #999; background: #fafafa; }
-  .all-item.owned  { border-color: #2d9e4a; border-width: 2px; background: #f2fff5; }
-  .all-item-name   { font-size: 12px; font-weight: 600; color: #1a1a1a; }
-  .all-item-rare   { font-size: 10px; color: #888; margin-top: 3px; }
-  .owned-badge     { font-size: 9px; color: #2d9e4a; font-weight: 700; margin-top: 4px; }
+/* ── TRADES TAB ─────────────────────────── */
+.trade-info { font-size: 12px; color: #888; margin-bottom: 14px; }
+.no-trade { font-size: 13px; color: #aaa; text-align: center; padding: 40px 0; }
+
+/* ── SHOP TAB ───────────────────────────── */
+.shop-hd { margin-bottom: 16px; }
+.shop-hd h2 { font-size: 18px; font-weight: 600; color: #1a1a1a; }
+.shop-hd p  { font-size: 12px; color: #888; margin-top: 3px; }
+
+.shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.shop-item {
+  background: #fff; border: 1px solid #e0e0e0;
+  border-radius: 12px; padding: 16px 12px; text-align: center;
+  transition: border-color 0.15s;
+  display: flex; flex-direction: column; align-items: center;
+}
+.shop-item:hover { border-color: #F8D030; }
+.shop-icon { font-size: 40px; margin-bottom: 8px; }
+.shop-name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+.shop-desc { font-size: 11px; color: #888; margin: 4px 0 10px; flex: 1; }
+.shop-inv { font-size: 11px; color: #3b4cca; font-weight: 700; margin-bottom: 6px; min-height: 16px; }
+.shop-price {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(255,203,5,0.12); border: 1px solid #ffcb05;
+  border-radius: 20px; padding: 3px 12px;
+  font-size: 12px; font-weight: 700; color: #c4a000; margin-bottom: 10px;
+}
+.shop-buy {
+  width: 100%; background: #e3350d; color: #fff;
+  border: none; border-radius: 7px; padding: 8px 0;
+  font-size: 12px; font-weight: 700; cursor: pointer;
+  border-bottom: 3px solid #b02a0b;
+}
+.shop-buy:hover { background: #c22d0a; }
+.shop-buy:disabled { background: #bbb; border-bottom-color: #999; cursor: not-allowed; }
+
+.sell-title { font-size: 15px; font-weight: 600; color: #1a1a1a; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.sell-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+.sell-item { background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 10px 8px; text-align: center; }
+.sell-item img { width: 52px; height: 52px; object-fit: contain; image-rendering: pixelated; display: block; margin: 0 auto 5px; }
+.sell-item-name { font-size: 11px; font-weight: 700; color: #1a1a1a; }
+.sell-item-val { font-size: 10px; color: #c4a000; font-weight: 600; margin: 3px 0 6px; }
+.sell-one {
+  width: 100%; background: #e67e22; color: #fff;
+  border: none; border-radius: 6px; padding: 6px 0;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.sell-one:hover { background: #b05b0a; }
+
+.divider { border: none; border-top: 1px solid #e0e0e0; margin: 20px 0; }
+.empty { text-align: center; color: #bbb; font-size: 13px; padding: 30px 0; }
+.prog-lbl { font-size: 12px; color: #888; margin-bottom: 4px; }
+
+/* ── TOAST ───────────────────────────────── */
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: #0f0f1e; color: #ffcb05;
+  padding: 10px 22px; border-radius: 20px;
+  font-size: 12px; font-weight: 600; z-index: 9999;
+  transition: transform 0.3s ease; white-space: nowrap;
+  font-family: 'Press Start 2P', monospace; pointer-events: none;
+  border: 1px solid #ffcb05;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 
-<div class="app">
-  <h1>Pokecards</h1>
+<div id="app">
 
+  <!-- HEADER -->
+  <div class="poke-header">
+    <div class="header-left">
+      <div class="poke-title">PokéCards</div>
+      <div class="poke-sub">Gerenciador de Coleção</div>
+    </div>
+    <div class="pokeball-spin"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#fff" stroke="#222" stroke-width="4"/><path d="M2 50 Q2 2 50 2 Q98 2 98 50Z" fill="#e3350d"/><line x1="2" y1="50" x2="98" y2="50" stroke="#222" stroke-width="4"/><circle cx="50" cy="50" r="14" fill="#fff" stroke="#222" stroke-width="4"/><circle cx="50" cy="50" r="7" fill="#ddd"/></svg></div>
+  </div>
+
+  <!-- POINTS -->
+  <div class="points-bar">
+    <div class="pts-badge">
+      <span style="display:inline-flex;align-items:center;flex-shrink:0"><svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="9" fill="#ffcb05" stroke="#b8860b" stroke-width="1.5"/><circle cx="10" cy="10" r="6" fill="#ffd740" stroke="#b8860b" stroke-width="1"/><text x="10" y="14" text-anchor="middle" font-size="8" font-weight="bold" fill="#7a5800">$</text></svg></span>
+      <span class="pts-num" id="pts-val">0</span>
+      <span class="pts-lbl">PokéCoins</span>
+    </div>
+    <span class="pts-hint">Abra pacotes e venda repetidas para ganhar moedas!</span>
+  </div>
+
+  <!-- NAV -->
   <nav class="nav">
-    <button class="active" onclick="showTab('pacotes', this)">Pacotinhos</button>
-    <button onclick="showTab('colecao', this)">Minha Colecao</button>
-    <button onclick="showTab('todas', this)">Todas as Figurinhas</button>
+    <button class="nav-btn active" onclick="showTab('pacotes',this)">
+      <i class="ti ti-package"></i>Pacotinhos
+    </button>
+    <button class="nav-btn" onclick="showTab('colecao',this)">
+      <i class="ti ti-cards"></i>Coleção
+    </button>
+    <button class="nav-btn" onclick="showTab('todas',this)">
+      <i class="ti ti-list-search"></i>Pokédex
+    </button>
+    <button class="nav-btn" onclick="showTab('trocas',this)">
+      <i class="ti ti-arrows-exchange"></i>Trocas
+    </button>
+    <button class="nav-btn" onclick="showTab('loja',this)">
+      <i class="ti ti-shopping-cart"></i>Loja
+    </button>
   </nav>
 
-  <!-- ABA PACOTINHOS -->
-  <div id="tab-pacotes" class="tab active">
-    <div class="pack-area">
+  <!-- CONTENT -->
+  <div class="content">
 
-      <div id="pack-idle" style="text-align:center">
-        <p class="pack-label">Clique para abrir um pacote e ganhar figurinhas aleatorias</p>
-        <button class="pack-btn" onclick="abrirPacote()">
-          <span style="font-size:40px">&#9632;</span>
-          <span>Abrir Pacote</span>
-        </button>
-      </div>
+    <!-- ABA PACOTINHOS -->
+    <div id="tab-pacotes" class="tab active">
+      <div class="pack-center">
 
-      <div id="pack-result" style="display:none; text-align:center; width:100%">
-        <p style="font-size:12px; color:#888; margin-bottom:12px">Voce ganhou estas figurinhas!</p>
-        <div class="opened-cards" id="opened-cards"></div>
-        <div class="pack-actions" style="margin-top:1rem; justify-content:center">
-          <button onclick="descartarPacote()">Descartar</button>
-          <button class="confirm" onclick="guardarPacote()">Guardar todas</button>
+        <div id="pack-idle">
+          <p class="pack-hint">Escolha um pacote para abrir:</p>
+          <div class="pack-selector">
+            <div class="pack-opt selected" data-pack="normal" onclick="selectPack(this,'normal')">
+              <div class="pack-opt-icon"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#fff" stroke="#222" stroke-width="4"/><path d="M2 50 Q2 2 50 2 Q98 2 98 50Z" fill="#e3350d"/><line x1="2" y1="50" x2="98" y2="50" stroke="#222" stroke-width="4"/><circle cx="50" cy="50" r="14" fill="#fff" stroke="#222" stroke-width="4"/><circle cx="50" cy="50" r="7" fill="#ddd"/></svg></div>
+              <div class="pack-opt-name">Pacote Normal</div>
+              <div class="pack-opt-price"><i class="ti ti-gift" style="color:#2d9e4a"></i> Grátis</div>
+              <div class="pack-opt-desc">4 cartas comuns</div>
+              <div class="pack-qty" style="font-size:11px;font-weight:700;margin-top:4px;color:#2d9e4a">∞</div>
+            </div>
+            <div class="pack-opt locked" data-pack="plus" onclick="selectPack(this,'plus')">
+              <div class="pack-opt-icon"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#fff" stroke="#222" stroke-width="4"/><path d="M2 50 Q2 2 50 2 Q98 2 98 50Z" fill="#0075BE"/><line x1="2" y1="50" x2="98" y2="50" stroke="#222" stroke-width="4"/><circle cx="50" cy="50" r="14" fill="#fff" stroke="#222" stroke-width="4"/><circle cx="50" cy="50" r="7" fill="#ddd"/></svg></div>
+              <div class="pack-opt-name">Pacote Plus</div>
+              <div class="pack-opt-price"><svg width="13" height="13" viewBox="0 0 20 20" style="vertical-align:middle;margin-right:2px"><circle cx="10" cy="10" r="9" fill="#ffcb05" stroke="#b8860b" stroke-width="1.5"/><text x="10" y="14" text-anchor="middle" font-size="9" font-weight="bold" fill="#7a5800">$</text></svg>50 coins</div>
+              <div class="pack-opt-desc">5 cartas, mais raras</div>
+              <div class="pack-qty" style="font-size:11px;font-weight:700;margin-top:4px;color:#c00">0</div>
+            </div>
+            <div class="pack-opt locked" data-pack="lendario" onclick="selectPack(this,'lendario')">
+              <div class="pack-opt-icon"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#fff" stroke="#222" stroke-width="4"/><path d="M2 50 Q2 2 50 2 Q98 2 98 50Z" fill="#9e38e8"/><line x1="2" y1="50" x2="98" y2="50" stroke="#222" stroke-width="4"/><circle cx="50" cy="50" r="14" fill="#fff" stroke="#222" stroke-width="4"/><circle cx="50" cy="50" r="7" fill="#ddd"/></svg></div>
+              <div class="pack-opt-name">Lendário</div>
+              <div class="pack-opt-price"><svg width="13" height="13" viewBox="0 0 20 20" style="vertical-align:middle;margin-right:2px"><circle cx="10" cy="10" r="9" fill="#ffcb05" stroke="#b8860b" stroke-width="1.5"/><text x="10" y="14" text-anchor="middle" font-size="9" font-weight="bold" fill="#7a5800">$</text></svg>150 coins</div>
+              <div class="pack-opt-desc">5 cartas ultra raras!</div>
+              <div class="pack-qty" style="font-size:11px;font-weight:700;margin-top:4px;color:#c00">0</div>
+            </div>
+            <div class="pack-opt locked" data-pack="lucky" onclick="selectPack(this,'lucky')">
+              <div class="pack-opt-icon"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><circle cx="50" cy="50" r="48" fill="#fff" stroke="#222" stroke-width="4"/><path d="M2 50 Q2 2 50 2 Q98 2 98 50Z" fill="#2d9e4a"/><line x1="2" y1="50" x2="98" y2="50" stroke="#222" stroke-width="4"/><circle cx="50" cy="50" r="14" fill="#fff" stroke="#222" stroke-width="4"/><circle cx="50" cy="50" r="7" fill="#ddd"/></svg></div>
+              <div class="pack-opt-name">Sortudo</div>
+              <div class="pack-opt-price"><svg width="13" height="13" viewBox="0 0 20 20" style="vertical-align:middle;margin-right:2px"><circle cx="10" cy="10" r="9" fill="#ffcb05" stroke="#b8860b" stroke-width="1.5"/><text x="10" y="14" text-anchor="middle" font-size="9" font-weight="bold" fill="#7a5800">$</text></svg>200 coins</div>
+              <div class="pack-opt-desc">25% de Ultra Rara!</div>
+              <div class="pack-qty" style="font-size:11px;font-weight:700;margin-top:4px;color:#c00">0</div>
+            </div>
+          </div>
+          <button class="open-btn" id="open-btn" onclick="abrirPacote()">Abrir Pacote!</button>
         </div>
-      </div>
 
-    </div>
-  </div>
+        <div id="pack-result" style="display:none">
+          <p style="font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:4px">Você ganhou!</p>
+          <p style="font-size:12px;color:#888;margin-bottom:16px">Selecione o que deseja fazer com as cartas:</p>
+          <div class="result-cards" id="result-cards"></div>
+          <div class="pack-btns">
+            <button class="btn-disc" onclick="descartarPacote()">Descartar tudo</button>
+            <button class="btn-sell-all" onclick="venderPacote()"><i class="ti ti-coin"></i> Vender todas</button>
+            <button class="btn-save" onclick="guardarPacote()"><i class="ti ti-check"></i> Guardar todas</button>
+          </div>
+        </div>
 
-  <!-- ABA MINHA COLECAO -->
-  <div id="tab-colecao" class="tab">
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-num" id="stat-total">0</div>
-        <div class="stat-label">Total de Itens</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="stat-dup">0</div>
-        <div class="stat-label">Repetidas</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num" id="stat-unique">0</div>
-        <div class="stat-label">Unicas</div>
       </div>
     </div>
-    <div class="search-bar">
-      <input type="text" placeholder="Buscar figurinha..." id="search-input" oninput="filtrar()">
-    </div>
-    <div class="collection-grid" id="collection-grid"></div>
-    <p class="empty-msg" id="empty-msg">Nenhuma figurinha ainda. Abra alguns pacotes!</p>
-  </div>
 
-  <!-- ABA TODAS AS FIGURINHAS -->
-  <div id="tab-todas" class="tab">
-    <p style="font-size:12px; color:#888; margin-bottom:1rem">
-      Clique em qualquer figurinha para adiciona-la a sua colecao.
-    </p>
-    <div class="all-grid" id="all-grid"></div>
-  </div>
-</div>
+    <!-- ABA COLEÇÃO -->
+    <div id="tab-colecao" class="tab">
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-num" id="s-total">0</div><div class="stat-lbl">Total</div></div>
+        <div class="stat-box"><div class="stat-num" id="s-unicas">0</div><div class="stat-lbl">Únicas</div></div>
+        <div class="stat-box"><div class="stat-num" id="s-rep">0</div><div class="stat-lbl">Repetidas</div></div>
+        <div class="stat-box"><div class="stat-num" id="s-perc">0%</div><div class="stat-lbl">Pokédex</div></div>
+      </div>
+      <div class="prog-lbl">Progresso da Pokédex</div>
+      <div class="prog-wrap"><div class="prog-fill" id="prog-bar" style="width:0%"></div></div>
+      <div class="prog-text" id="prog-text">0 / 20</div>
+      <div class="filter-row">
+        <input type="text" placeholder="Buscar Pokémon..." id="search-inp" oninput="renderCol()">
+        <button class="fpill active" onclick="setFilter('todas',this)">Todas</button>
+        <button class="fpill" onclick="setFilter('fav',this)"><i class="ti ti-star"></i> Favoritas</button>
+        <button class="fpill" onclick="setFilter('rep',this)">Repetidas</button>
+        <button class="fpill" onclick="setFilter('troca',this)"><i class="ti ti-arrows-exchange"></i> Troca</button>
+      </div>
+      <div class="col-grid" id="col-grid"></div>
+      <div class="empty" id="col-empty">Nenhuma carta ainda. Abra alguns pacotes!</div>
+    </div>
+
+    <!-- ABA POKÉDEX -->
+    <div id="tab-todas" class="tab">
+      <p class="pdx-info">Clique em qualquer Pokémon para adicionar à coleção. <span style="color:#2d9e4a;font-weight:600">Verde</span> = você tem.</p>
+      <div class="pdx-grid" id="pdx-grid"></div>
+    </div>
+
+    <!-- ABA TROCAS -->
+    <div id="tab-trocas" class="tab">
+      <p class="trade-info">Marque cartas como "Troca" na Coleção para listá-las aqui.</p>
+      <div class="pdx-grid" id="trade-grid"></div>
+      <div class="no-trade" id="trade-empty">Você não marcou nenhuma carta para troca ainda.</div>
+    </div>
+
+    <!-- ABA LOJA -->
+    <div id="tab-loja" class="tab">
+      <div class="shop-hd">
+        <h2><i class="ti ti-building-store" style="font-size:20px;vertical-align:middle"></i> Loja do Professor Oak</h2>
+        <p>Gaste suas PokéCoins em pacotes e itens especiais</p>
+      </div>
+      <div class="shop-grid" id="shop-grid"></div>
+      <hr class="divider">
+      <div class="sell-title"><i class="ti ti-coin" style="font-size:18px"></i> Vender Cartas Repetidas</div>
+      <div class="sell-grid" id="sell-grid"></div>
+      <div class="empty" id="sell-empty">Sem cartas repetidas para vender no momento.</div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<div class="toast" id="toast"></div>
 
 <script>
-  const FIGURINHAS = [
-    {id:1,  nome:"Pikachu",    raridade:"Comum"},
-    {id:2,  nome:"Charmander", raridade:"Comum"},
-    {id:3,  nome:"Squirtle",   raridade:"Comum"},
-    {id:4,  nome:"Bulbasaur",  raridade:"Comum"},
-    {id:5,  nome:"Jigglypuff", raridade:"Comum"},
-    {id:6,  nome:"Gengar",     raridade:"Incomum"},
-    {id:7,  nome:"Snorlax",    raridade:"Incomum"},
-    {id:8,  nome:"Eevee",      raridade:"Incomum"},
-    {id:9,  nome:"Lapras",     raridade:"Incomum"},
-    {id:10, nome:"Dragonite",  raridade:"Rara"},
-    {id:11, nome:"Mewtwo",     raridade:"Ultra Rara"},
-    {id:12, nome:"Mew",        raridade:"Ultra Rara"},
-    {id:13, nome:"Charizard",  raridade:"Rara"},
-    {id:14, nome:"Blastoise",  raridade:"Rara"},
-    {id:15, nome:"Venusaur",   raridade:"Rara"},
-    {id:16, nome:"Articuno",   raridade:"Rara"},
-    {id:17, nome:"Zapdos",     raridade:"Rara"},
-    {id:18, nome:"Moltres",    raridade:"Rara"},
-  ];
+const POKES = [
+  {id:1,  nome:"Pikachu",    r:"Comum",      s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png"},
+  {id:2,  nome:"Charmander", r:"Comum",      s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png"},
+  {id:3,  nome:"Squirtle",   r:"Comum",      s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png"},
+  {id:4,  nome:"Bulbasaur",  r:"Comum",      s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png"},
+  {id:5,  nome:"Jigglypuff", r:"Comum",      s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/39.png"},
+  {id:6,  nome:"Psyduck",    r:"Comum",      s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/54.png"},
+  {id:7,  nome:"Gengar",     r:"Incomum",    s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png"},
+  {id:8,  nome:"Snorlax",    r:"Incomum",    s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png"},
+  {id:9,  nome:"Eevee",      r:"Incomum",    s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/133.png"},
+  {id:10, nome:"Lapras",     r:"Incomum",    s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/131.png"},
+  {id:11, nome:"Dragonite",  r:"Rara",       s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/149.png"},
+  {id:12, nome:"Charizard",  r:"Rara",       s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png"},
+  {id:13, nome:"Blastoise",  r:"Rara",       s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/9.png"},
+  {id:14, nome:"Venusaur",   r:"Rara",       s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/3.png"},
+  {id:15, nome:"Articuno",   r:"Rara",       s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/144.png"},
+  {id:16, nome:"Zapdos",     r:"Rara",       s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/145.png"},
+  {id:17, nome:"Moltres",    r:"Rara",       s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/146.png"},
+  {id:18, nome:"Mewtwo",     r:"Ultra Rara", s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png"},
+  {id:19, nome:"Mew",        r:"Ultra Rara", s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png"},
+  {id:20, nome:"Lugia",      r:"Ultra Rara", s:"https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/249.png"},
+];
 
-  let colecao = [];
-  let pacoteAtual = [];
+const PRICE = {"Comum":5,"Incomum":15,"Rara":40,"Ultra Rara":100};
+const RCLS  = {"Comum":"tc","Incomum":"ti","Rara":"tr","Ultra Rara":"tur"};
 
-  function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+const SHOP = [
+  {id:"pp", icon:'<i class="ti ti-ball-basketball" style="font-size:36px;color:#0075BE"></i>', nome:"Pacote Plus",    desc:"5 cartas com mais raridade",    preco:50,  acao:"pack_plus"},
+  {id:"pl", icon:'<i class="ti ti-crown" style="font-size:36px;color:#9e38e8"></i>',            nome:"Pacote Lendário", desc:"5 cartas ultra raras++",        preco:150, acao:"pack_lend"},
+  {id:"lk", icon:'<i class="ti ti-clover" style="font-size:36px;color:#2d9e4a"></i>',           nome:"Pacote Sortudo",  desc:"Garante ao menos 1 Ultra Rara", preco:200, acao:"lucky"},
+  {id:"dh", icon:'<i class="ti ti-book" style="font-size:36px;color:#e3350d"></i>',             nome:"Dica Pokédex",    desc:"Revela 3 Pokémons que faltam",  preco:30,  acao:"hint"},
+  {id:"se", icon:'<i class="ti ti-layout-grid" style="font-size:36px;color:#3b4cca"></i>',      nome:"Extra Slot",       desc:"Mais espaço de trocas",         preco:80,  acao:"slot"},
+  {id:"rn", icon:'<i class="ti ti-pencil" style="font-size:36px;color:#e67e22"></i>',           nome:"Renomear",         desc:"Renomeie sua carta favorita",   preco:20,  acao:"rename"},
+];
 
-  function randRaridade() {
-    const r = Math.random();
-    if (r < 0.50) return "Comum";
-    if (r < 0.80) return "Incomum";
-    if (r < 0.95) return "Rara";
-    return "Ultra Rara";
+const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Ctext y='48' x='8' font-size='48'%3E⭕%3C/text%3E%3C/svg%3E";
+
+let col = [], pts = 0, filt = "todas", selPack = "normal", pacAtu = [], toastT = null;
+// inventário de pacotes comprados
+let inventario = { normal: 999, plus: 0, lendario: 0, lucky: 0 };
+
+function $id(id){ return document.getElementById(id); }
+
+function toast(msg){
+  const t = $id("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>t.classList.remove("show"), 2300);
+}
+
+function updPts(){ $id("pts-val").textContent = pts; atualizarBotao(); }
+
+function packCusto(name){ return name==="plus"?50:name==="lendario"?150:name==="lucky"?200:0; }
+
+function selectPack(el, name){
+  if(inventario[name] < 1 && name !== "normal"){
+    toast("Compre este pacote na Loja primeiro!");
+    return;
   }
+  document.querySelectorAll(".pack-opt").forEach(p=>p.classList.remove("selected"));
+  el.classList.add("selected");
+  selPack = name;
+  atualizarBotao();
+}
 
-  function abrirPacote() {
-    pacoteAtual = [];
-    for (let i = 0; i < 4; i++) {
-      const rare = randRaridade();
-      const pool = FIGURINHAS.filter(f => f.raridade === rare);
-      pacoteAtual.push(pool.length ? rand(pool) : rand(FIGURINHAS));
+function atualizarBotao(){
+  const btn = $id("open-btn");
+  const temPacote = selPack === "normal" || inventario[selPack] > 0;
+  btn.disabled = !temPacote;
+  btn.textContent = temPacote ? "Abrir Pacote!" : "Sem pacotes — compre na Loja";
+  // Atualiza visual dos cards
+  document.querySelectorAll(".pack-opt[data-pack]").forEach(opt => {
+    const name = opt.dataset.pack;
+    const bloqueado = name !== "normal" && inventario[name] < 1;
+    opt.classList.toggle("locked", bloqueado);
+    // atualiza badge de quantidade
+    const badge = opt.querySelector(".pack-qty");
+    if(badge){
+      if(name === "normal") badge.textContent = "∞";
+      else badge.textContent = inventario[name] > 0 ? "x"+inventario[name] : "0";
+      badge.style.color = inventario[name] > 0 || name === "normal" ? "#2d9e4a" : "#c00";
     }
-    const el = document.getElementById("opened-cards");
-    el.innerHTML = "";
-    pacoteAtual.forEach(f => {
-      const d = document.createElement("div");
-      d.className = "mini-card";
-      d.innerHTML = `<div class="mini-card-name">${f.nome}</div><div class="mini-card-rare">${f.raridade}</div>`;
-      el.appendChild(d);
-    });
-    document.getElementById("pack-idle").style.display = "none";
-    document.getElementById("pack-result").style.display = "block";
+  });
+}
+
+function randR(tipo){
+  const r = Math.random();
+  if(tipo==="lucky"){        // 200 coins — melhor pacote
+    if(r<0.25) return "Ultra Rara";  // 25%
+    if(r<0.60) return "Rara";        // 35%
+    if(r<0.85) return "Incomum";     // 25%
+    return "Comum";                  // 15%
   }
-
-  function descartarPacote() {
-    pacoteAtual = [];
-    document.getElementById("pack-idle").style.display = "block";
-    document.getElementById("pack-result").style.display = "none";
+  if(tipo==="lendario"){     // 150 coins
+    if(r<0.12) return "Ultra Rara";  // 12%
+    if(r<0.40) return "Rara";        // 28%
+    if(r<0.72) return "Incomum";     // 32%
+    return "Comum";                  // 28%
   }
-
-  function guardarPacote() {
-    pacoteAtual.forEach(f => {
-      colecao.push({
-        ...f,
-        uid: Date.now() + Math.random(),
-        repetida: colecao.some(c => c.id === f.id),
-        fav: false,
-        troca: false
-      });
-    });
-    pacoteAtual = [];
-    document.getElementById("pack-idle").style.display = "block";
-    document.getElementById("pack-result").style.display = "none";
-    atualizarColecao();
-    atualizarTodas();
+  if(tipo==="plus"){         // 50 coins
+    if(r<0.03) return "Ultra Rara";  // 3%
+    if(r<0.13) return "Rara";        // 10%
+    if(r<0.38) return "Incomum";     // 25%
+    return "Comum";                  // 62%
   }
+  // normal — grátis, muito difícil
+  if(r<0.005) return "Ultra Rara";   // 0.5%
+  if(r<0.02)  return "Rara";         // 1.5%
+  if(r<0.12)  return "Incomum";      // 10%
+  return "Comum";                    // 88%
+}
 
-  function atualizarStats() {
-    const total = colecao.length;
-    const dup   = colecao.filter(c => c.repetida).length;
-    document.getElementById("stat-total").textContent  = total;
-    document.getElementById("stat-dup").textContent    = dup;
-    document.getElementById("stat-unique").textContent = total - dup;
+function imgTag(sprite, nome, w, h){
+  return `<img src="${sprite}" alt="${nome}" width="${w}" height="${h}" style="image-rendering:pixelated" onerror="this.src='${FALLBACK}'">`;
+}
+
+function abrirPacote(){
+  if(selPack !== "normal" && inventario[selPack] < 1){
+    toast("Sem pacotes! Compre na Loja.");
+    return;
   }
-
-  function atualizarColecao() {
-    atualizarStats();
-    filtrar();
+  if(selPack !== "normal") { inventario[selPack]--; atualizarBotao(); }
+  const qtd = selPack==="normal"?4:5;
+  pacAtu = [];
+  for(let i=0;i<qtd;i++){
+    const rr = randR(selPack);
+    const pool = POKES.filter(p=>p.r===rr);
+    pacAtu.push(pool[Math.floor(Math.random()*pool.length)]);
   }
+  const el = $id("result-cards"); el.innerHTML="";
+  pacAtu.forEach((f,i)=>{
+    const cls = f.r==="Ultra Rara"?"ultra":f.r==="Rara"?"rara":"";
+    const d = document.createElement("div");
+    d.className="rev-card "+cls;
+    d.innerHTML=`${imgTag(f.s,f.nome,70,70)}
+      <div class="rev-name">${f.nome}</div>
+      <div class="rev-rare"><span class="type-badge ${RCLS[f.r]}">${f.r}</span></div>`;
+    el.appendChild(d);
+  });
+  $id("pack-idle").style.display="none";
+  $id("pack-result").style.display="block";
+}
 
-  function filtrar() {
-    const q = document.getElementById("search-input").value.toLowerCase();
-    const grid = document.getElementById("collection-grid");
-    grid.innerHTML = "";
-    const filtradas = colecao.filter(c => c.nome.toLowerCase().includes(q));
+function descartarPacote(){ pacAtu=[]; toast("Pacote descartado."); resetPack(); }
 
-    document.getElementById("empty-msg").style.display = colecao.length === 0 ? "block" : "none";
+function venderPacote(){
+  let t=0; pacAtu.forEach(f=>{t+=PRICE[f.r];}); pts+=t; updPts();
+  toast("+"+t+" PokéCoins!");
+  pacAtu=[]; resetPack();
+}
 
-    filtradas.forEach(c => {
-      const d = document.createElement("div");
-      d.className = "card" + (c.fav ? " fav" : "") + (c.troca ? " trade" : "");
-      d.id = "card-" + c.uid;
-      d.innerHTML = `
-        <div class="card-top"><div class="card-top-name">${c.nome}</div></div>
-        <div class="card-body">
-          <div class="card-rare">${c.raridade}</div>
-          ${c.repetida ? '<div class="card-dup">Repetida</div>' : ""}
-          ${c.fav   ? '<div class="card-fav-badge">Favorita</div>'   : ""}
-          ${c.troca ? '<div class="card-trade-badge">Para Troca</div>' : ""}
-          <div class="card-actions">
-            <button class="${c.fav ? 'active-fav' : ''}" onclick="toggleFav('${c.uid}')">Fav</button>
-            <button class="${c.troca ? 'active-trade' : ''}" onclick="toggleTroca('${c.uid}')">Troca</button>
-            <button class="del" onclick="remover('${c.uid}')">X</button>
-          </div>
-        </div>`;
-      grid.appendChild(d);
-    });
+function guardarPacote(){
+  pacAtu.forEach(f=>{
+    const jatem=col.some(c=>c.id===f.id);
+    col.push({...f,uid:Date.now()+Math.random(),repetida:jatem,fav:false,troca:false});
+  });
+  pts+=10; updPts();
+  toast("Cartas guardadas! +10 coins");
+  pacAtu=[]; resetPack();
+}
+
+function resetPack(){
+  $id("pack-idle").style.display="block";
+  $id("pack-result").style.display="none";
+}
+
+function setFilter(f,el){
+  filt=f;
+  document.querySelectorAll(".fpill").forEach(p=>p.classList.remove("active"));
+  el.classList.add("active");
+  renderCol();
+}
+
+function renderCol(){
+  const q = $id("search-inp").value.toLowerCase();
+  const grid=$id("col-grid"), empty=$id("col-empty");
+  grid.innerHTML="";
+  let vis=col.filter(c=>c.nome.toLowerCase().includes(q));
+  if(filt==="fav")   vis=vis.filter(c=>c.fav);
+  if(filt==="rep")   vis=vis.filter(c=>c.repetida);
+  if(filt==="troca") vis=vis.filter(c=>c.troca);
+  empty.style.display=col.length===0?"block":"none";
+  vis.forEach(c=>{
+    const d=document.createElement("div");
+    d.className="pcard"+(c.fav?" fav":"")+(c.troca?" trade":"");
+    d.innerHTML=`<div class="pcard-top">
+        ${c.repetida?'<span class="dup-badge">+1</span>':""}
+        ${imgTag(c.s,c.nome,70,70)}
+      </div>
+      <div class="pcard-body">
+        <div class="pcard-name">${c.nome}</div>
+        <span class="type-badge ${RCLS[c.r]}">${c.r}</span>
+        <div class="pcard-status">
+          ${c.fav?'<span class="sf"><i class="ti ti-star-filled"></i> Favorita</span>':""}
+          ${c.troca?'<span class="st"><i class="ti ti-arrows-exchange"></i> Troca</span>':""}
+        </div>
+        <div class="pca">
+          <button class="pcab ${c.fav?'af':''}" onclick="tog('${c.uid}','fav')"><i class="ti ti-star"></i></button>
+          <button class="pcab ${c.troca?'at':''}" onclick="tog('${c.uid}','troca')"><i class="ti ti-arrows-exchange"></i></button>
+          <button class="pcab as" onclick="vEnd('${c.uid}')"><i class="ti ti-coin"></i></button>
+          <button class="pcab del" onclick="rem('${c.uid}')"><i class="ti ti-x"></i></button>
+        </div>
+      </div>`;
+    grid.appendChild(d);
+  });
+  const uniq=new Set(col.map(c=>c.id)).size;
+  const total=col.length, rep=col.filter(c=>c.repetida).length;
+  const perc=Math.round((uniq/POKES.length)*100);
+  $id("s-total").textContent=total; $id("s-unicas").textContent=uniq;
+  $id("s-rep").textContent=rep; $id("s-perc").textContent=perc+"%";
+  $id("prog-bar").style.width=perc+"%";
+  $id("prog-text").textContent=uniq+" / "+POKES.length;
+}
+
+function tog(uid,flag){
+  const c=col.find(x=>x.uid==uid); if(!c)return;
+  if(flag==="fav"){c.fav=!c.fav; if(c.fav)c.troca=false;}
+  if(flag==="troca"){c.troca=!c.troca; if(c.troca)c.fav=false;}
+  renderCol();
+}
+
+function vEnd(uid){
+  const c=col.find(x=>x.uid==uid); if(!c)return;
+  const val=PRICE[c.r]; col=col.filter(x=>x.uid!=uid);
+  pts+=val; updPts();
+  toast("+"+val+" coins por "+c.nome+"!");
+  renderCol(); renderPdx(); renderSell();
+}
+
+function rem(uid){
+  col=col.filter(x=>x.uid!=uid);
+  renderCol(); renderPdx(); renderSell();
+}
+
+function renderPdx(){
+  const grid=$id("pdx-grid"); grid.innerHTML="";
+  POKES.forEach(f=>{
+    const qtd=col.filter(c=>c.id===f.id).length;
+    const owned=qtd>0;
+    const d=document.createElement("div");
+    d.className="pdx-item"+(owned?" owned":"");
+    d.innerHTML=`${imgTag(f.s,f.nome,60,60)}
+      <div class="pdx-name">${f.nome}</div>
+      <span class="type-badge ${RCLS[f.r]}">${f.r}</span>
+      ${owned?'<div class="pdx-qty">x'+qtd+'</div>':""}`;
+    d.onclick=()=>{
+      const jatem=col.some(c=>c.id===f.id);
+      col.push({...f,uid:Date.now()+Math.random(),repetida:jatem,fav:false,troca:false});
+      renderPdx(); renderCol();
+      toast(f.nome+" adicionado!");
+    };
+    grid.appendChild(d);
+  });
+}
+
+function renderTrades(){
+  const trocas=col.filter(c=>c.troca);
+  const grid=$id("trade-grid"), empty=$id("trade-empty");
+  grid.innerHTML="";
+  empty.style.display=trocas.length===0?"block":"none";
+  trocas.forEach(c=>{
+    const d=document.createElement("div");
+    d.className="pdx-item owned";
+    d.innerHTML=`${imgTag(c.s,c.nome,60,60)}
+      <div class="pdx-name">${c.nome}</div>
+      <span class="type-badge ${RCLS[c.r]}">${c.r}</span>
+      <div class="pdx-own"><i class="ti ti-arrows-exchange"></i> Para troca</div>`;
+    grid.appendChild(d);
+  });
+}
+
+function renderShop(){
+  const grid=$id("shop-grid"); grid.innerHTML="";
+  const INV_ACOES = {pack_plus:"plus", pack_lend:"lendario", lucky:"lucky"};
+  SHOP.forEach(item=>{
+    const can=pts>=item.preco;
+    const invKey = INV_ACOES[item.acao];
+    const qtd = invKey ? inventario[invKey] : null;
+    const d=document.createElement("div");
+    d.className="shop-item";
+    d.innerHTML=`<div class="shop-icon">${item.icon}</div>
+      <div class="shop-name">${item.nome}</div>
+      <div class="shop-desc">${item.desc}</div>
+      <div class="shop-inv">${qtd!==null ? "No inventário: "+qtd : ""}</div>
+      <div class="shop-price"><i class="ti ti-coin"></i> ${item.preco}</div>
+      <button class="shop-buy" style="width:100%;margin-top:8px" ${can?"":"disabled"} onclick="comprar('${item.id}',${item.preco},'${item.acao}','${item.nome}')">Comprar</button>`;
+    grid.appendChild(d);
+  });
+}
+
+function renderSell(){
+  const reps=col.filter(c=>c.repetida);
+  const grid=$id("sell-grid"), empty=$id("sell-empty");
+  grid.innerHTML="";
+  empty.style.display=reps.length===0?"block":"none";
+  reps.forEach(c=>{
+    const val=PRICE[c.r];
+    const d=document.createElement("div");
+    d.className="sell-item";
+    d.innerHTML=`${imgTag(c.s,c.nome,52,52)}
+      <div class="sell-item-name">${c.nome}</div>
+      <div class="sell-item-val">+<i class="ti ti-coin"></i> ${val}</div>
+      <button class="sell-one" onclick="vEnd('${c.uid}')">Vender</button>`;
+    grid.appendChild(d);
+  });
+}
+
+function comprar(id,preco,acao,nome){
+  if(pts<preco){toast("Coins insuficientes!");return;}
+  if(acao==="pack_plus"){
+    pts-=preco; updPts(); inventario.plus++;
+    atualizarBotao(); renderShop();
+    toast("Pacote Plus comprado! (x"+inventario.plus+") — abra em Pacotinhos."); return;
   }
-
-  function toggleFav(uid) {
-    const c = colecao.find(x => x.uid == uid);
-    if (c) { c.fav = !c.fav; c.troca = false; }
-    atualizarColecao();
+  if(acao==="pack_lend"){
+    pts-=preco; updPts(); inventario.lendario++;
+    atualizarBotao(); renderShop();
+    toast("Pacote Lendário comprado! (x"+inventario.lendario+") — abra em Pacotinhos."); return;
   }
-
-  function toggleTroca(uid) {
-    const c = colecao.find(x => x.uid == uid);
-    if (c) { c.troca = !c.troca; c.fav = false; }
-    atualizarColecao();
+  if(acao==="lucky"){
+    pts-=preco; updPts(); inventario.lucky++;
+    atualizarBotao(); renderShop();
+    toast("Pacote Sortudo comprado! (x"+inventario.lucky+") — abra em Pacotinhos."); return;
   }
-
-  function remover(uid) {
-    colecao = colecao.filter(x => x.uid != uid);
-    atualizarColecao();
-    atualizarTodas();
+  if(acao==="hint"){
+    pts-=preco; updPts();
+    const faltam=POKES.filter(p=>!col.some(c=>c.id===p.id));
+    if(faltam.length===0){toast("Você tem todos os Pokémons!");return;}
+    const picks=faltam.sort(()=>Math.random()-0.5).slice(0,3).map(p=>p.nome).join(", ");
+    toast("Faltam: "+picks); renderShop(); return;
   }
+  pts-=preco; updPts();
+  toast(nome+" comprado!"); renderShop();
+}
 
-  function atualizarTodas() {
-    const grid = document.getElementById("all-grid");
-    grid.innerHTML = "";
-    FIGURINHAS.forEach(f => {
-      const tenho = colecao.some(c => c.id === f.id);
-      const d = document.createElement("div");
-      d.className = "all-item" + (tenho ? " owned" : "");
-      d.innerHTML = `
-        <div class="all-item-name">${f.nome}</div>
-        <div class="all-item-rare">${f.raridade}</div>
-        ${tenho ? '<div class="owned-badge">Tenho</div>' : ""}`;
-      d.onclick = () => {
-        colecao.push({
-          ...f,
-          uid: Date.now() + Math.random(),
-          repetida: colecao.some(c => c.id === f.id),
-          fav: false,
-          troca: false
-        });
-        atualizarColecao();
-        atualizarTodas();
-      };
-      grid.appendChild(d);
-    });
-  }
+function showTab(name,btn){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+  $id("tab-"+name).classList.add("active");
+  btn.classList.add("active");
+  if(name==="colecao") renderCol();
+  if(name==="todas")   renderPdx();
+  if(name==="trocas")  renderTrades();
+  if(name==="loja")    {renderShop();renderSell();}
+}
 
-  function showTab(name, btn) {
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
-    document.getElementById("tab-" + name).classList.add("active");
-    btn.classList.add("active");
-    if (name === "todas")   atualizarTodas();
-    if (name === "colecao") atualizarColecao();
-  }
-
-  atualizarTodas();
+renderPdx(); renderCol(); atualizarBotao();
 </script>
 </body>
 </html>
